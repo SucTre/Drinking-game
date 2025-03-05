@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drinking Game - Rút Thẻ</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #222;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            overflow: hidden;
+        }
+        .card-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+        }
+        .card {
+            width: 120px;
+            height: 180px;
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.5s, box-shadow 0.5s;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        .card:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+        }
+        .selected-card {
+            position: absolute;
+            width: 200px;
+            height: 300px;
+            background: white;
+            color: black;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+            transition: all 0.5s;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="card" onclick="revealCard(this)">?</div>
+        <div class="card" onclick="revealCard(this)">?</div>
+        <div class="card" onclick="revealCard(this)">?</div>
+        <div class="card" onclick="revealCard(this)">?</div>
+        <div class="card" onclick="revealCard(this)">?</div>
+        <div class="card" onclick="revealCard(this)">?</div>
+    </div>
+    
+    <div class="selected-card hidden" id="selectedCard">
+        <p id="cardText"></p>
+        <button onclick="nextTurn()">Tiếp tục</button>
+    </div>
+
+    <script>
+        const challenges = [
+            // Test
+            "Uống 1 ly",
+            "Hôn má người bên trái",
+            "Chạy vòng quanh phòng 1 lần",
+            "Nhảy điệu vui nhộn trong 10 giây",
+            "Nói 1 bí mật của bạn",
+            "Bắt chước giọng của người chơi khác",
+            "Đọc to tin nhắn gần đây nhất",
+            "Nhảy 5 cái squat",
+            "Tự vỗ tay 10 lần",
+            "Hét lớn 'Tôi là bá chủ bàn nhậu!'",
+            "Uống 2 ly",
+    		"Nhảy múa trong 30 giây",
+    		"Kể một bí mật cá nhân",
+    		"Hôn lên má người đối diện",
+            "Hét lên 'Tôi là vua của bàn nhậu!'",
+            "Làm một dáng chụp ảnh điên rồ",
+            "Nhảy lò cò 3 vòng quanh phòng",
+            "Uống cạn ly trong 5 giây",
+            "Nhại giọng một người chơi khác",
+            "Kể câu chuyện hài hước nhất của bạn",
+            "Uống thêm 1 ly nếu bạn đang đeo kính",
+            "Hôn tay người bên phải",
+            "Chơi trò oẳn tù tì với người đối diện, ai thua uống 1 ly",
+            "Giả vờ là động vật bạn thích trong 30 giây",
+            "Uống 1 ly hoặc để mọi người vẽ lên mặt bạn",
+            
+            // BỘ CÂU HỎI THỬ THÁCH DRINKING GAME 18+
+            // 1-10: Thử thách tiếp xúc cơ thể
+            "Hôn cổ người bên trái trong 10 giây. (Phạt: Uống 2 ly + cởi 1 món đồ.)",
+            "Ngậm đá lạnh và đặt vào miệng người khác. (Phạt: Uống 3 ly.)",
+            "Để người khác viết chữ bằng lưỡi lên ngực hoặc lưng bạn. (Phạt: Cởi áo.)",
+            "Hôn kiểu Pháp với người khác giới gần nhất trong nhóm. (Phạt: Uống 2 ly + để người đó cắn nhẹ môi bạn.)",
+            "Để người bên phải chọn một phần trên cơ thể bạn để liếm. (Phạt: Uống 3 ly + làm điều đó với người khác.)",
+            "Đặt tay lên đùi người bên trái trong 5 phút. (Phạt: Uống 3 ly + để họ chọn nơi khác.)",
+            "Cởi một món đồ mà nhóm yêu cầu. (Phạt: Uống 4 ly.)",
+            "Dùng miệng lột vỏ trái cây từ miệng người khác. (Phạt: Uống 2 ly + chấp nhận thử thách khác.)",
+            "Để người khác búng nhẹ vào nhũ hoa/mông của bạn. (Phạt: Uống 2 ly.)",
+            "Ngậm ngón tay người khác trong 10 giây. (Phạt: Uống 3 ly.)",
+            
+            // 11-20: Thử thách gợi dục hơn
+            "Tạo dáng chụp ảnh sexy và đăng lên story. (Phạt: Uống 3 ly.)",
+            "Gọi video cho ai đó và nói “Tôi đang nhớ cơ thể bạn.” (Phạt: Uống 4 ly.)",
+            "Để người khác bôi kem/sốt lên cổ và liếm sạch. (Phạt: Uống 3 ly + làm điều đó với ai khác.)",
+            "Kéo áo xuống thấp 10 giây mà không dùng tay giữ lại. (Phạt: Uống 5 ly.)",
+            "Mô phỏng tư thế 18+ với một người trong 10 giây. (Phạt: Uống 4 ly + thêm 5 giây.)",
+            "Đọc một tin nhắn gợi dục trong điện thoại của bạn cho cả nhóm nghe. (Phạt: Uống 3 ly.)",
+            "Chạm vào đùi người khác theo cách gợi cảm. (Phạt: Uống 2 ly.)",
+            "Để người khác đánh nhẹ vào mông bạn. (Phạt: Uống 3 ly.)",
+            "Thì thầm một câu gợi dục vào tai người bên phải. (Phạt: Uống 2 ly + họ sẽ thì thầm lại một câu khác.)",
+            "Hôn lên xương quai xanh của ai đó. (Phạt: Uống 3 ly.)",
+            
+            // 21-30: Thử thách liều lĩnh
+            "Nhắn tin cho người yêu cũ: Anh/em đang nhớ em/anh. (Phạt: Uống 5 ly.)",
+            "Chia sẻ bí mật 18+ về bạn. (Phạt: Uống 3 ly.)",
+            "Tắt đèn và hôn một người bất kỳ trong bóng tối. (Phạt: Uống 4 ly.)",
+            "Mô tả tư thế 18+ yêu thích của bạn. (Phạt: Uống 2 ly.)",
+            "Cởi áo ngồi trong 1 vòng chơi. (Phạt: Uống 5 ly.)",
+            "Để ai đó cột tay bạn trong 2 phút và chạm vào bạn. (Phạt: Uống 4 ly.)",
+            "Để một người vẽ thứ gì đó lên ngực hoặc bụng bạn. (Phạt: Uống 3 ly.)",
+            "Bắt chước âm thanh 18+ lớn tiếng trong 5 giây. (Phạt: Uống 3 ly + làm thêm lần nữa.)",
+            "Để ai đó chạm vào bạn trong 10 giây bất kỳ đâu (không vùng cấm). (Phạt: Uống 5 ly.)",
+            "Chơi “Kéo, Búa, Bao” với người khác. Thua thì phải cởi 1 món đồ. (Phạt: Uống 3 ly.)",
+            
+            // 31-40: Thử thách mạo hiểm xã hội 
+            "Nhắn tin cho ai đó Em/Anh đang không mặc gì! rồi chụp phản ứng. (Phạt: Uống 5 ly.)",
+            "Để người khác chụp một bức ảnh táo bạo của bạn. (Phạt: Uống 4 ly.)",
+            "Đọc to tin nhắn gần đây nhất của bạn. (Phạt: Uống 3 ly.)",
+            "Để người khác chọn bài hát sexy và bạn phải nhảy theo. (Phạt: Uống 4 ly.)",
+            "Để ai đó vẽ một dấu hôn trên cổ bạn bằng son. (Phạt: Uống 3 ly.)",
+            "Gọi cho một người bạn cùng giới và tán tỉnh họ. (Phạt: Uống 4 ly.)",
+            "Đọc một đoạn truyện 18+ bằng giọng gợi cảm. (Phạt: Uống 3 ly.)",
+            "Để ai đó cởi một món đồ của bạn bằng miệng. (Phạt: Uống 5 ly.)",
+            "Để ai đó ngồi lên đùi bạn trong 1 vòng chơi. (Phạt: Uống 3 ly.)",
+            "Lập một cuộc hẹn hò ngay bây giờ trên ứng dụng dating. (Phạt: Uống 4 ly.)",
+            
+            // 41-50: Thử thách đỉnh cao, chỉ dành cho kẻ liều mạng
+            "Cởi đồ và quấn chăn thay thế trong 1 vòng chơi. (Phạt: Uống 6 ly.)",
+            "Hôn dọc theo cơ thể người chơi bất kỳ (không vùng cấm). (Phạt: Uống 5 ly.)",
+            "Để ai đó véo nhẹ vào một chỗ nhạy cảm. (Phạt: Uống 4 ly.)",
+            "Giả vờ đang tự xử trong 10 giây. (Phạt: Uống 4 ly.)",
+            "Gọi ai đó và nói Anh/Em đang nghĩ về chúng ta trong phòng ngủ. (Phạt: Uống 5 ly.)",
+            "Ngồi lên lòng người chơi khác trong 1 vòng. (Phạt: Uống 3 ly.)",
+            "Hôn bất kỳ ai trong nhóm mà bạn thấy hấp dẫn nhất. (Phạt: Uống 4 ly.)",
+            "Chơi Truth or Strip với ai đó trong 3 vòng. (Phạt: Uống 6 ly.)",
+            "Để người khác chọn một vùng trên cơ thể bạn để viết gì đó bằng bút lông. (Phạt: Uống 4 ly.)",
+            "Để một người chơi khác quyết định thử thách táo bạo nhất cho bạn. (Phạt: Uống 6 ly.)",
+            
+            // BỘ THỬ THÁCH ĐIÊN KHÙNG NHẸ NHÀNG
+            // 1-10: Skinship nhẹ nhàng
+            "Ôm người bên trái 30 giây và thì thầm một câu ngọt ngào. (Phạt: Uống 2 ly.)",
+            "Để người khác véo má bạn mạnh nhất có thể. (Phạt: Uống 3 ly.)",
+            "Gục đầu lên vai người khác trong 1 vòng chơi. (Phạt: Uống 2 ly.)",
+            "Hôn gió về phía người đối diện 3 lần. (Phạt: Uống 2 ly.)",
+            "Để ai đó gãi đầu hoặc vuốt tóc bạn trong 1 phút. (Phạt: Uống 3 ly.)",
+            "Cọ mũi với người bên phải như cách Eskimo làm. (Phạt: Uống 2 ly.)",
+            "Để ai đó vẽ lên lòng bàn tay bạn một hình gì đó. (Phạt: Uống 2 ly.)",
+            "Dùng hai tay nâng mặt người đối diện và nói: “Cậu thật đẹp.” (Phạt: Uống 3 ly.)",
+            "Nắm tay người khác và đan tay vào nhau trong 1 vòng chơi. (Phạt: Uống 2 ly.)",
+            "Để người bên trái cột tóc hoặc chỉnh tóc cho bạn. (Phạt: Uống 3 ly.)",
+
+            //11-20: Hành động kỳ quặc
+            "Đứng dậy và hét to: Tôi là vị thần của buổi tiệc này! (Phạt: Uống 2 ly.)",
+            "Lăn một vòng trên sàn như cá mắc cạn. (Phạt: Uống 3 ly.)",
+            "Hít đất 10 cái nhưng mỗi cái phải rống lên như Tarzan. (Phạt: Uống 2 ly.)",
+            "Nhảy lò cò quanh bàn 2 vòng. (Phạt: Uống 3 ly.)",
+            "Ngậm một ngụm nước và cố gắng nói: Tôi yêu mọi người! mà không phun ra. (Phạt: Uống 3 ly.)",
+            "Cúi gập người 90 độ và đi vòng quanh phòng trong 1 phút. (Phạt: Uống 3 ly.)",
+            "Lấy một cái gối đội lên đầu và giả làm vua trong 1 vòng chơi. (Phạt: Uống 2 ly.)",
+            "Đứng lên ghế và hô to: Tôi yêu bản thân mình! (Phạt: Uống 3 ly.)",
+            "Giữ nguyên biểu cảm nghiêm túc trong 1 phút dù có ai làm gì. (Phạt: Uống 3 ly.)",
+            "Nói chuyện bằng giọng điệu như một nhân vật hoạt hình trong 2 phút. (Phạt: Uống 2 ly.)",
+            
+            //21-30: Xấu hổ nơi công cộng
+            "Gõ cửa nhà hàng xóm và hỏi họ có muối không. (Phạt: Uống 5 ly.)",
+            "Mở cửa sổ hoặc ban công và hét lớn: ĂN CƯỚP! À NHẦM, TÔI CHỈ MUỐN CHƠI THÔI. (Phạt: Uống 4 ly.)",
+            "Chạy ra ngoài đường và vẫy tay với người lạ. (Phạt: Uống 3 ly.)",
+            "Đứng nghiêm và chào người lạ như quân đội trong 30 giây. (Phạt: Uống 3 ly.)",
+            "Chạy quanh phòng như Naruto trong 1 phút. (Phạt: Uống 2 ly.)",
+            "Gọi một người bạn không có mặt và hét lên TÔI NHỚ CẬU QUÁ! (Phạt: Uống 3 ly.)",
+            "Giả làm robot và đi bộ theo kiểu máy móc trong 1 vòng chơi. (Phạt: Uống 3 ly.)",
+            "Hát một bài hát thiếu nhi thật nghiêm túc. (Phạt: Uống 2 ly.)",
+            "Đi bộ chậm rãi quanh phòng như thể bạn đang ở slow-motion. (Phạt: Uống 3 ly.)",
+            "Đứng yên trong 30 giây như tượng sáp. (Phạt: Uống 2 ly.)",
+            
+            //31-40: Hành động ngu ngốc nhưng vui
+            "Giả làm chó và sủa 10 tiếng. (Phạt: Uống 3 ly.)",
+            "Cười lớn 30 giây mà không dừng lại. (Phạt: Uống 3 ly.)",
+            "Đọc một câu thơ trữ tình nhưng theo giọng robot. (Phạt: Uống 3 ly.)",
+            "Quấn khăn giấy quanh người như xác ướp và giữ vậy 1 vòng chơi. (Phạt: Uống 3 ly.)",
+            "Lấy một cái ly làm micro và diễn thuyết như một chính trị gia. (Phạt: Uống 2 ly.)",
+            "Nhại lại giọng của một người trong nhóm trong 1 phút. (Phạt: Uống 3 ly.)",
+            "Làm mặt hài hước trong 30 giây mà không cười. (Phạt: Uống 2 ly.)",
+            "Để người khác vẽ một con vật ngẫu nhiên lên mặt bạn. (Phạt: Uống 3 ly.)",
+            "Đọc to status Facebook gần nhất của bạn. (Phạt: Uống 3 ly.)",
+            "Để ai đó chọn một vật bất kỳ và đội lên đầu trong 1 vòng chơi. (Phạt: Uống 2 ly.)",
+            
+            //41-50: Các thử thách mạng xã hội & troll bạn bè 
+            "Đổi ảnh đại diện Facebook thành một bức ảnh xấu trong 10 phút. (Phạt: Uống 5 ly.)",
+            "Gửi tin nhắn: Mình yêu bạn! cho người lạ trên danh bạ. (Phạt: Uống 4 ly.)",
+            "Comment: Tuyệt phẩm! vào bài đăng gần nhất của người mà bạn crush. (Phạt: Uống 3 ly.)",
+            "Đăng story: Ai muốn yêu tôi thì inbox liền. (Phạt: Uống 5 ly.)",
+            "Nhắn tin cho ai đó: Có tin vui nè! nhưng không giải thích. (Phạt: Uống 3 ly.)",
+            "Gọi điện cho bạn thân và hát một bài hát bất kỳ. (Phạt: Uống 3 ly.)",
+            "Tìm một tấm ảnh dìm của mình và gửi vào nhóm chat. (Phạt: Uống 3 ly.)",
+            "Đăng status: Tôi vừa có một quyết định quan trọng trong đời. Ai đoán đúng thì có thưởng. (Phạt: Uống 4 ly.)",
+            "Bình luận : Gì dạ? vào bài đăng của 5 người ngẫu nhiên trên Facebook. (Phạt: Uống 3 ly.)",
+            "Đăng caption Ai inbox đầu tiên sẽ nhận được một bí mật động trời từ tôi. (Phạt: Uống 4 ly.)",
+            
+            // Thử thách 18+, thác loạn 
+            "Hôn người bên trái bạn. (Phạt: Uống 2 ly.)",
+            "Liếm tai người bên phải. (Phạt: Uống 3 ly.)",
+            "Cởi một món đồ trên người. (Phạt: Uống 2 ly.)",
+            "Đọc tin nhắn gần nhất của bạn to lên. (Phạt: Uống 3 ly.)",
+            "Để một người trong nhóm cắn vào cổ bạn. (Phạt: Uống 2 ly.)",
+            "Hôn vào cổ ai đó trong nhóm. (Phạt: Uống 2 ly.)",
+            "Vuốt ve đùi người gần nhất trong 10 giây. (Phạt: Uống 3 ly.)",
+            "Gọi cho ex và nói anh/em nhớ em/anh. (Phạt: Uống 3 ly.)",
+            "Cởi tất cả phụ kiện (giày, vòng tay, nhẫn...). (Phạt: Uống 2 ly.)",
+            "Nhảy sexy trong 30 giây. (Phạt: Uống 3 ly.)",
+            "Để ai đó vẽ lên người bạn bằng son hoặc bút lông. (Phạt: Uống 2 ly.)",
+            "Làm một hành động gợi cảm với người đối diện. (Phạt: Uống 2 ly.)",
+            "Nói nhỏ vào tai người bên cạnh một câu thật gợi cảm. (Phạt: Uống 2 ly.)",
+            "Giữ ánh mắt gợi tình với ai đó trong nhóm trong 10 giây. (Phạt: Uống 2 ly.)",
+
+            // Thử thách điên rồ nhưng nhẹ nhàng 
+            "Đập cửa nhà hàng xóm và hét Ăn cướp! rồi chạy về. (Phạt: Uống 2 ly.)",
+            "Sủa 10 lần vào thùng rác. (Phạt: Uống 2 ly.)",
+            "Đổi avatar Facebook thành ảnh tự chọn của nhóm trong 24h. (Phạt: Uống 2 ly.)",
+            "Quấn khăn giấy quanh người như xác ướp. (Phạt: Uống 2 ly.)",
+            "Hát một bài hát thiếu nhi thật nghiêm túc. (Phạt: Uống 2 ly.)",
+            "Đọc một câu khó nhanh 3 lần. Nếu thất bại, uống 2 ly.",
+            "Cõng một người trong nhóm đi một vòng. (Phạt: Uống 2 ly.)",
+            "Nói giọng trẻ con trong 2 vòng chơi. (Phạt: Uống 2 ly.)",
+            "Hóa thân thành chó và sủa gâu gâu mỗi khi nói chuyện trong vòng này. (Phạt: Uống 2 ly.)",
+            "Làm mặt xấu nhất có thể trong 10 giây. (Phạt: Uống 1 ly.)",
+            "Tự sáng tác một câu rap và đọc ngay lập tức. (Phạt: Uống 2 ly.)",
+            "Bắt chước điệu bộ của người ngồi đối diện trong 2 phút. (Phạt: Uống 2 ly.)",
+            "Làm động tác plank trong 30 giây. (Phạt: Uống 2 ly.)",
+            "Chơi oẳn tù tì với người bên cạnh, ai thua uống 2 ly.",
+            "Đứng trên một chân trong 1 vòng chơi. (Phạt: Uống 2 ly.)",
+
+            // Hình phạt cá nhân
+            "Tăng gấp đôi hình phạt kế tiếp.",
+            "Bị tất cả mọi người búng tai.",
+            "Cúi đầu cụng nhẹ vào bàn 3 lần.",
+            "Bị chọc lét trong 10 giây.",
+            "Phải cầm ly bằng 2 tay trong 3 vòng tiếp theo.",
+            "Nói câu ‘Tôi là đồ ngốc’ thật to.",
+            "Phải đi bằng 4 chân đến lượt tiếp theo.",
+            "Tự tét mông mình 3 cái.",
+            "Làm bộ mặt cute nhất có thể trong 1 phút.",
+            "Hát một bài hát tình cảm cho người ngồi bên cạnh.",
+
+            // Hình phạt tập thể
+            "Tất cả đều uống 2 ly.",
+            "Bạn và 2 người bên cạnh bị cả nhóm tét mông.",
+            "Cả nhóm phải đổi chỗ ngồi cho nhau ngay lập tức.",
+            "Tất cả phải nói ngược câu cuối trước câu đầu trong 1 vòng chơi.",
+            "Cả nhóm phải làm đội cổ vũ và hò hét cổ vũ người vừa nhận thử thách.",
+
+            // Thẻ thưởng
+            "Miễn hình phạt kế tiếp.",
+            "Bỏ qua lượt chơi tiếp theo.",
+            "Chuyển hình phạt của bạn cho người khác.",
+            "Chuyển thử thách của bạn cho người khác.",
+            "Chọn một người đút bạn ăn một món bất kỳ.",
+            "Người ra thử thách cho bạn phải tự làm thử thách đó.",
+            "Bạn có thể tạo một thử thách mới cho người bất kỳ.",
+            "Chọn hai người trong nhóm đổi chỗ cho nhau.",
+            "Bắt một người trong nhóm tiết lộ một bí mật.",
+            "Miễn cởi đồ nếu thử thách yêu cầu.",
+            "Đảo chiều chơi, lượt chơi tiếp theo đi ngược lại.",
+            "Bạn có thể nhờ một người khác giúp bạn thực hiện thử thách.",
+            "Chỉ định một người bất kỳ uống 2 ly ngay lập tức.",
+            "Tăng gấp đôi hình phạt của một người khác.",
+            "Bạn có thể yêu cầu một người trong nhóm làm một điều nhỏ cho bạn ngay lập tức."
+        ];
+
+        //function revealCard(card) {
+        //    const randomIndex = Math.floor(Math.random() * challenges.length);
+        //    document.getElementById("cardText").innerText = challenges[randomIndex];
+        //    document.getElementById("selectedCard").classList.remove("hidden");
+        //}
+
+        //function nextTurn() {
+        //    document.getElementById("selectedCard").classList.add("hidden");
+        //}
+        
+        function revealCard(card) {
+          let randomIndex = Math.floor(Math.random() * challenges.length);
+          let selectedChallenge = challenges[randomIndex];
+
+          // Hiển thị nội dung thẻ
+          document.getElementById("cardText").innerText = selectedChallenge;
+          document.getElementById("selectedCard").classList.remove("hidden");
+
+          // Ẩn tất cả các thẻ bài
+          document.querySelector(".card-container").classList.add("hidden");
+    	}
+
+    	function nextTurn() {
+          // Ẩn thẻ đã chọn và hiện lại bộ bài
+          document.getElementById("selectedCard").classList.add("hidden");
+          document.querySelector(".card-container").classList.remove("hidden");
+    	}
+    </script>
+</body>
+</html>
