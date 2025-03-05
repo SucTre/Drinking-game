@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drinking Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #222;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            overflow: hidden;
+        }
+        .hidden { display: none; }
+        .game-title {
+            font-size: 3rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.8);
+        }
+        .age-warning {
+            font-size: 1.5rem;
+            color: #ff4b2b;
+            margin-bottom: 20px;
+        }
+        .choose-deck-btn, .start-game-btn {
+            background-color: #ff416c;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            color: white;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .choose-deck-btn:hover, .start-game-btn:hover {
+            background-color: #ff4b2b;
+        }
+        .deck-selection {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .deck {
+            background: #444;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .deck:hover {
+            background: #666;
+        }
+        .curtain {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100vh;
+            background: black;
+            transition: transform 1s ease-in-out;
+        }
+        .curtain-left {
+            left: 0;
+            transform: translateX(-100%);
+        }
+        .curtain-right {
+            right: 0;
+            transform: translateX(100%);
+        }
+        .curtain.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="curtain curtain-left"></div>
+    <div class="curtain curtain-right"></div>
+    
+    <div class="start-screen">
+        <h1 class="game-title">Drinking Game</h1>
+        <p class="age-warning">18+ available</p>
+        <button class="choose-deck-btn" onclick="showDeckSelection()">Chọn bộ bài</button>
+    </div>
+    
+    <div class="deck-selection hidden">
+        <h2>Chọn bộ bài</h2>
+        <div class="deck" onclick="selectDeck('normal')">
+            <h3>Bộ thường</h3>
+            <p>Nhẹ nhàng, vui vẻ, phù hợp với tất cả mọi người.</p>
+        </div>
+        <div class="deck" onclick="selectDeck('18plus')">
+            <h3>Bộ 18+</h3>
+            <p>Táo bạo, thác loạn, không dành cho trẻ em!</p>
+        </div>
+        <button class="start-game-btn hidden" onclick="startGame()">Bắt đầu chơi</button>
+    </div>
+
+    <script>
+        function showDeckSelection() {
+            document.querySelector('.start-screen').classList.add('hidden');
+            document.querySelector('.deck-selection').classList.remove('hidden');
+        }
+
+        function selectDeck(deck) {
+            document.querySelector('.start-game-btn').classList.remove('hidden');
+        }
+
+        function startGame() {
+            document.querySelector('.curtain-left').classList.add('show');
+            document.querySelector('.curtain-right').classList.add('show');
+            setTimeout(() => {
+                window.location.href = 'game.html';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
